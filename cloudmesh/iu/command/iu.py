@@ -70,16 +70,6 @@ class IuCommand(PluginCommand):
                                           {"gpu": "1"}))
 
 
-        if arguments.node is None:
-
-            if arguments.host == "volta":
-                random.randint(1, 2) + 4
-
-            else:
-                number = random.randint(1, 4)
-            arguments.node = f"r-00{number}"
-
-
         VERBOSE(arguments)
 
         banner("Login")

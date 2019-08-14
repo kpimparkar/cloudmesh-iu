@@ -3,6 +3,10 @@ from subprocess import check_output
 from cloudmesh.common3.Shell import Shell
 from cloudmesh.common.Printer import Printer
 from textwrap import indent
+from cloudmesh.common.parameter import Parameter
+from cloudmesh.common.console import Console
+
+import random
 class Manager(object):
 
     """
@@ -36,11 +40,51 @@ class Manager(object):
         status = self.queue(host=host, user=user)
         print (Printer.attribute(status, header=["Node", "Used GPUs"]))
 
+
+        #
+        # Required node not available (down, drained or reserved)
+        #
+
+        def find_random(host):
+            if host == "volta":
+                random.randint(1, 2) + 4
+            else:
+                number = random.randint(1, 4)
+            node = f"r-00{number}"
+            return node
+
+        def find_first(host):
+            node=None
+            max_gpus = 8 # this is for now hard coded
+            for node in status:
+                used = status[node]
+                if used + gpus < max_gpus:
+                    break
+            return node
+
+        if node is None or node=="first":
+            node = find_first(host)
+
+        if node is None or node=="random":
+            node = find_random(host)
+
+        if node is not None:
+            Console.ok(f"Login on node {host}: {node}")
+
+            self.login(
+                 user=user,
+                 host=host,
+                 node=node,
+                 gpus=gpus)
+        else:
+            Console.error(f"not enough GPUs available: {host}: {node}")
+
     def status(self, user=None):
 
         for host in ["romeo", "volta"]:
 
             status = self.queue(host=host, user=user)
+            print (status)
             print(Printer.attribute(status, header=[host, "Used GPUs"]))
 
         for host in ["romeo", "volta"]:
