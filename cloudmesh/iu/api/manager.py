@@ -37,7 +37,10 @@ class Manager(object):
               host="romeo",
               node=1,
               gpus=1):
+
         status = self.queue(host=host, user=user)
+        print("LLL", locals())
+
         print (Printer.attribute(status, header=["Node", "Used GPUs"]))
 
 
@@ -45,22 +48,37 @@ class Manager(object):
         # Required node not available (down, drained or reserved)
         #
 
-        def find_random(host):
+        reserved = self.reserved_nodes(user=user)
+
+        def hostnames(host):
             if host == "volta":
-                random.randint(1, 2) + 4
+                names = Parameter.expand("r-00[5-6]")
             else:
-                number = random.randint(1, 4)
-            node = f"r-00{number}"
-            return node
+                names = Parameter.expand("r-00[1-4]")
+
+            max_gpus = 8  # this is for now hard coded
+            valid = []
+            for name in names:
+                if name not in reserved and status[name] + gpus <= max_gpus:
+                    valid.append(name)
+            return valid
+
+        def find_random(host):
+            names = hostnames(host)
+
+            if len(names) == 0 or names is None:
+                return None
+            id = random.randint(0, len(host) - 1)
+            return names[id]
 
         def find_first(host):
-            node=None
-            max_gpus = 8 # this is for now hard coded
-            for node in status:
-                used = status[node]
-                if used + gpus < max_gpus:
-                    break
-            return node
+
+            names = hostnames(host)
+
+            if names is None or len(names) == 0:
+                return None
+            else:
+                return names[0]
 
         if node is None or node=="first":
             node = find_first(host)
@@ -79,12 +97,35 @@ class Manager(object):
         else:
             Console.error(f"not enough GPUs available: {host}: {node}")
 
+    def reserved_nodes(self, user=None):
+
+        reservation = self.reservations(user=user)
+
+        _reserved_nodes = []
+        for r in reservation:
+            nodes = Parameter.expand(r["Nodes"])
+            _reserved_nodes = _reserved_nodes + nodes
+
+        return _reserved_nodes
+
     def status(self, user=None):
+
+        reservation = self.reservations(user=user)
+        print(Printer.write(reservation))
+
+        reserved = self.reserved_nodes(user=user)
+
+        #
+        # BUG check for date
+        #
+
+        # print (reserved)
 
         for host in ["romeo", "volta"]:
 
             status = self.queue(host=host, user=user)
-            print (status)
+
+            print()
             print(Printer.attribute(status, header=[host, "Used GPUs"]))
 
         for host in ["romeo", "volta"]:
@@ -130,3 +171,17 @@ class Manager(object):
 
 
         return used
+
+    def reservations(self, user=None):
+        command = f"ssh -o LogLevel=QUIET -t {user}@juliet.futuresystems.org " \
+                  f" scontrol -a -d -o show res"
+        result = check_output(command, shell=True).decode('ascii').splitlines()
+        r = []
+        for line in result:
+            data = {}
+            entry = line.split(" ")
+            for element in entry:
+                attribute, value = element.split("=")
+                data[attribute] = value
+            r.append(data)
+        return r
