@@ -1,6 +1,6 @@
 import os
 from subprocess import check_output
-from cloudmesh.common3.Shell import Shell
+from cloudmesh.common.Shell import Shell
 from cloudmesh.common.Printer import Printer
 from textwrap import indent
 from cloudmesh.common.parameter import Parameter
