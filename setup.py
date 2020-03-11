@@ -23,19 +23,10 @@ def readfile(filename):
     with io.open(filename, encoding="utf-8") as stream:
         return stream.read().split()
 
-
-# requiers = readfile ('requirements.txt')
-#
-# add minimum requirements here
-#
 requiers = """
 cloudmesh-configuration
 cloudmesh-cmd5
-cloudmesh-sys
-cloudmesh-inventory
-""".split("\n")
-
-# dependency_links = ['http://github.com/nicolaiarocci/eve.git@develop']
+""".splitlines()
 
 version = readfile("VERSION")[0].strip()
 
