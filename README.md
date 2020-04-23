@@ -9,11 +9,10 @@ you have set up your environment how to start a notebook.
 
 Once you have set up the environment as discussed previously you need 3 terminals
 
-```
-terminal 1: r-allocate
-terminal 2: r-jupyter
-terminal 3: r-port file:// .... # copy the line from terminal 2 with the file://
-browser: copy the url with local host in it in your browser
+* terminal 1: ```r-allocate```
+* terminal 2: ```r-jupyter```
+* terminal 3: ```r-port file:// ....``` # copy the line from terminal 2 with the file://
+* browser: copy the url with local host in it in your browser
 
 You will see the jupyter notebook
 
@@ -67,36 +66,37 @@ alias r-ps='echo "ps -aux| fgrep gvonlasz" | ssh juliet "ssh ${JHOST}"'
 alias r-kill='echo "echo; hostname; echo; pkill jupyter-lab| fgrep gvonlasz" | ssh juliet "ssh $JHOST"'
 ```
 
+
 This provides the following commands to you
 
-* r-allocate
+* `r-allocate`
 
   to get an allocation, call once. When you close the window the
   allocation is terminated and none of the commands will work well
 
-* r-install
+* `r-install`
 
   Tensorflow software stack installation in your home dir on romeo ~/ENV3
 
   You have to do this only once
 
-* r
+* `r`
 
   This logs you into romeo
 
-* j
+* `j`
 
   This logs you into juliet
 
-* r-ps
+* `r-ps`
 
   This dos a ps on romeo
 
-* r-kill
+* `r-kill`
 
   This kills all jupyter processes on romeo
 
-* r-jupyter
+* `r-jupyter`
 
   This starts a jupyter lab notebook
 
@@ -109,7 +109,7 @@ This provides the following commands to you
 
   Next, you can pates and copy the line with http:// and local host into your browser
 
-## Setup .bashrc on juliet
+## Setup `.bashrc` on juliet
 
 On juliet you must include the following in your bashrc file
 
