@@ -172,6 +172,16 @@ if tf.test.is_gpu_available():
 
 ```
 
+The output of the code looks like
+
+```
+---
+GPU AVAILABLE
+------------------------------
+GPU Device Names
+/device:GPU:0
+```
+
 ## GPU Test Code
 
 This test code may run for a long time, so you may want to interrupt
