@@ -1,21 +1,61 @@
 import os
 from subprocess import check_output
 from cloudmesh.common.Shell import Shell
-from cloudmesh.common.Printer import Printer
+from cloudmesh.common.Tabulate import Printer
 from textwrap import indent
 from cloudmesh.common.parameter import Parameter
 from cloudmesh.common.console import Console
+from cloudmesh.common.util import readfile
+from cloudmesh.common.util import writefile
+import textwrap
+from cloudmesh.common.debug import VERBOSE
+from cloudmesh.common.variables import Variables
+import textwrap
 
 import random
-class Manager(object):
 
+
+class Manager(object):
     """
     PARTITION  AVAIL  TIMELIMIT  NODES   GRES  STATE NODELIST
     romeo         up   infinite      4  gpu:8    mix r-[001-004]
     volta         up   infinite      2  gpu:8    mix r-[005-006]
     """
-    def __init__(self):
-        print("init {name}".format(name=self.__class__.__name__))
+
+    def __init__(self, user=None):
+        self.hostname = "juliet.futuresystems.org"
+        self.host = "juliet"
+        self.user = user
+        variables = Variables()
+        self.debug = variables["debug"]
+
+        if user is not None:
+            self.login = f"{user}@{self.host}"
+
+    def DEBUG(self, *args):
+        if self.debug:
+            Console.info(" ".join(args))
+
+    def setup(self, user=None):
+        self.ssh_config_add("j", self.hostname, user)
+        self.ssh_config_add("juliet", self.hostname, user)
+        self.ssh_config_add("romeo", self.hostname, user)
+
+    def ssh_config_add(self, label, host, user):
+        config = readfile("~/.ssh/config")
+        if f"Host {label}" in config:
+            Console.warning(f"{label} is already in ~/.ssh/config")
+        else:
+            entry = textwrap.dedent(f"""
+            Host {label}
+                Hostname {host}
+                User {user}
+                IdentityFile ~/.ssh/id_rsa.pub
+            """)
+            Console.info(f"adding {label} to ~/.ssh/config\n" +
+                         textwrap.indent(entry, prefix="    "))
+            config = config + entry
+            writefile("~/.ssh/config", config)
 
     def list(self, parameter):
         print("list", parameter)
@@ -26,23 +66,22 @@ class Manager(object):
               node=1,
               gpus=1):
 
-        command = f"ssh -t {user}@juliet.futuresystems.org " \
+        command = f"ssh -t {self.host} " \
                   f" srun -p {host}" \
                   f" -w {node} --gres gpu:{gpus} --pty bash"
-
+        print(command)
         os.system(command)
 
     def smart_login(self,
-              user=None,
-              host="romeo",
-              node=1,
-              gpus=1):
+                    user=None,
+                    host="romeo",
+                    node=1,
+                    gpus=1):
 
         status = self.queue(host=host, user=user)
-        print("LLL", locals())
+        # VERBOSE(locals())
 
-        print (Printer.attribute(status, header=["Node", "Used GPUs"]))
-
+        print(Printer.attribute(status, header=["Node", "Used GPUs"]))
 
         #
         # Required node not available (down, drained or reserved)
@@ -54,7 +93,7 @@ class Manager(object):
             if host == "volta":
                 names = Parameter.expand("r-00[5-6]")
             else:
-                names = Parameter.expand("r-00[1-4]")
+                names = Parameter.expand("r-00[3-4]")
 
             max_gpus = 8  # this is for now hard coded
             valid = []
@@ -80,20 +119,20 @@ class Manager(object):
             else:
                 return names[0]
 
-        if node is None or node=="first":
+        if node is None or node == "first":
             node = find_first(host)
 
-        if node is None or node=="random":
+        if node is None or node == "random":
             node = find_random(host)
 
         if node is not None:
             Console.ok(f"Login on node {host}: {node}")
 
             self.login(
-                 user=user,
-                 host=host,
-                 node=node,
-                 gpus=gpus)
+                user=user,
+                host=host,
+                node=node,
+                gpus=gpus)
         else:
             Console.error(f"not enough GPUs available: {host}: {node}")
 
@@ -111,7 +150,28 @@ class Manager(object):
     def status(self, user=None):
 
         reservation = self.reservations(user=user)
-        print(Printer.write(reservation))
+        VERBOSE(reservation)
+        print(Printer.write(reservation,
+                            order=[
+                                'Nodes',
+                                'ReservationName',
+                                'State',
+                                'Users',
+                                'CoreCnt',
+                                'Flags',
+                                'NodeCnt'
+
+                            ],
+                            #header=[
+                            #    'Nodes',
+                            #    'Reservation',
+                            #    'State',
+                            #    'Allowed Users'
+                            #    'Cores (CPUs)',
+                            #    'Flags',
+                            #    'No.Nodes'
+                            #]
+                            ))
 
         reserved = self.reserved_nodes(user=user)
 
@@ -121,33 +181,46 @@ class Manager(object):
 
         # print (reserved)
 
+        used = {}
         for host in ["romeo", "volta"]:
-
             status = self.queue(host=host, user=user)
+            for key in status:
+                used_gpu = status[key]
+                used[key] = {
+                    'name': key,
+                    'used': status[key],
+                    'domain': host
+                }
 
-            print()
-            print(Printer.attribute(status, header=[host, "Used GPUs"]))
+        print(Printer.write(used,
+                            order=["name", "domain", "used"],
+                            header=["Host", "Domain", "Used GPUs"]))
 
+        data = {}
         for host in ["romeo", "volta"]:
             users = self.users(host=host, user=user)
-            print()
-            print (f"Users on {host}")
-            print()
-            print (indent("\n".join(users), "    "))
-        print()
-
+            users = ', '.join(users)
+            data[host] = {
+                "host": host,
+                "users": users
+            }
+        print("\nActive Users")
+        print(Printer.write(data,
+                            order=["host", "users"],
+                            header=["Host", "Users"]))
 
     def users(self, host=None, user=None):
-        command = f"ssh -o LogLevel=QUIET -t {user}@juliet.futuresystems.org " \
+        command = f"ssh -o LogLevel=QUIET -t {self.host} " \
                   f" squeue -p {host} -o \"%u\""
         r = check_output(command, shell=True).decode('ascii').split()[1:]
         r = sorted(set(r))
         return r
 
     def queue(self, host=None, user=None):
-        command = f"ssh -o LogLevel=QUIET -t {user}@juliet.futuresystems.org " \
+        command = f"ssh -o LogLevel=QUIET -t {self.host} " \
                   f" squeue -p {host}"
-        # print(command)
+
+        self.DEBUG(command)
 
         lines = check_output(command, shell=True).decode('ascii') \
                     .splitlines()[1:]
@@ -169,11 +242,10 @@ class Manager(object):
             used[host] += gpus
             # print (attributes)
 
-
         return used
 
     def reservations(self, user=None):
-        command = f"ssh -o LogLevel=QUIET -t {user}@juliet.futuresystems.org " \
+        command = f"ssh -o LogLevel=QUIET -t {self.host} " \
                   f" scontrol -a -d -o show res"
         result = check_output(command, shell=True).decode('ascii').splitlines()
         r = []

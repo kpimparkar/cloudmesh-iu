@@ -1,6 +1,6 @@
 from cloudmesh.shell.command import command
 from cloudmesh.shell.command import PluginCommand, map_parameters
-from cloudmesh.iu.api.manager import Manager
+from cloudmesh.iu.system.manager import Manager
 from cloudmesh.common.console import Console
 from cloudmesh.common.util import path_expand
 from pprint import pprint
@@ -23,8 +23,10 @@ class IuCommand(PluginCommand):
 
           Usage:
                 iu [--user=USERNAME] [--host=HOST] [--node=NUMBER] [--gpu=GPUS]
+                   [--res=RESERVATION]
                 iu status
                 iu res
+                iu setup --user=USERNAME
 
           This command allows you to inteactively log into roeo or volta
 
@@ -34,6 +36,8 @@ class IuCommand(PluginCommand):
               NUMBER  is a number that specifies where to login
               GPUS    the number of GPU's to be used
 
+          Options:
+              --res=RESERVATION  [default: lijguo_11]
 
           Example:
 
@@ -72,7 +76,7 @@ class IuCommand(PluginCommand):
 
                         user2
         """
-
+        VERBOSE(arguments)
         map_parameters(arguments,
                        "user",
                        "host",
@@ -80,14 +84,18 @@ class IuCommand(PluginCommand):
                        "gpu")
 
         variables = Variables()
-        arguments["user"] = Parameter.find("user", arguments, variables)
+        #arguments["user"] = Parameter.find("user", arguments, variables)
+        # if arguments.user is None:
+        #    config = Config()
+        #    arguments.user = config["cloudmesh.iu.user"]
 
-        if arguments.user is None:
-            config = Config()
-            arguments.user = config["cloudmesh.iu.user"]
+        iu = Manager(user=arguments.user)
 
-        iu = Manager()
+        if arguments.setup:
 
+            iu.setup(user=arguments.user)
+
+            return ""
 
         if arguments.status:
 
@@ -109,9 +117,14 @@ class IuCommand(PluginCommand):
             arguments["gpu"] = int(Parameter.find("gpu", arguments, variables,
                                                   {"gpu": "1"}))
 
-            VERBOSE(arguments)
+            # VERBOSE(arguments)
 
-            banner("Login")
+            banner(f"Login {arguments.host}")
+
+            #iu.login(user=arguments.user,
+            #               host=arguments.host,
+            #               node=arguments.node,
+            #               gpus=arguments.gpu)
 
             iu.smart_login(user=arguments.user,
                            host=arguments.host,

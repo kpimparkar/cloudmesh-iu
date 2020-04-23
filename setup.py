@@ -26,6 +26,7 @@ def readfile(filename):
 requiers = """
 cloudmesh-configuration
 cloudmesh-cmd5
+cloudmesh-gui
 """.splitlines()
 
 version = readfile("VERSION")[0].strip()
