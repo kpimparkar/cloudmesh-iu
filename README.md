@@ -1,5 +1,23 @@
 # Romeo Tensorflow Installation
 
+## Quickstart
+
+This quickstart assumes you have done all the steps discussed throughout
+the document (this includes setting up your bashrc files, and installing
+tensorflow). We include it here so you have an easy way to remember once
+you have set up your environment how to start a notebook.
+
+Once you have set up the environment as discussed previously you need 3 terminals
+
+```
+terminal 1: r-allocate
+terminal 2: r-jupyter
+terminal 3: r-port file:// .... # copy the line from terminal 2 with the file://
+browser: copy the url with local host in it in your browser
+
+You will see the jupyter notebook
+
+
 ## Account
 
 * Make sure you get a futuresystems account on
@@ -108,17 +126,6 @@ else
     source $HOME/ENV3/bin/activate
 fi
 ```
-## Quicstart
-
-Once you have set up the environment as discussed previously you need 3 terminals
-
-```
-terminal 1: r-allocate
-terminal 2: r-jupyter
-terminal 3: r-port file:// .... # copy the line from terminal 2 with the file://
-browser: copy the url with local host in it in your browser
-
-You will see the jupyter notebook
 
 
 ## Using Romeo
