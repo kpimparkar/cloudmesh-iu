@@ -127,6 +127,34 @@ else
 fi
 ```
 
+## SSHFS
+
+Sometimes it is beneficial to use your local browsers to access files
+on romeo. We do this at this time just via juliet and anable sharing
+with sshfs. This tool is avialable for many OSes and you need to install
+it before using.
+
+Gregor has placed the following additional lines in hos. bashrc file on
+his local computer:
+
+```
+alias j-mount="cd ${HOME}/Desktop; sshfs juliet:shared juliet -o auto_cache ; cd ${HOME}/Desktop/juliet"
+alias j-umount="cd ${HOME}/Desktop; umount juliet"
+
+```
+
+Once you say j-mount it mounts the dir juliet:~/share to a local
+directory ~/Desktop/juliet. As the files on juliet are shared with romeo
+they are available also there.
+
+In the terminal you simply can say
+
+```j-mount``` for mount and
+```j-unmount`` for ummounting.
+
+
+
+
 
 ## Using Romeo
 
