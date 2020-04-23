@@ -103,7 +103,7 @@ This provides the following commands to you
   To use it you need to call in a new window after you copy the line with
   file:// in it
 
-  r-port file://....
+  ```r-port file://....```
 
   This will establish a connection to the notebook
 
