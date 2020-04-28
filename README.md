@@ -78,7 +78,7 @@ alias r='ssh -t juliet "ssh ${JHOST}"'
 alias j='ssh juliet'
 
 function r-start-jupyter {
-    rm log-jupyter.txt
+    rm -f ${JLOG}
     echo "pkill jupyter-lab; jupyter-lab --port ${JPORT} --ip 0.0.0.0 --no-browser" | ssh juliet "ssh ${JHOST}"
 }
 
@@ -86,15 +86,15 @@ alias r-ps='echo "ps -aux| fgrep gvonlasz" | ssh juliet "ssh ${JHOST}"'
 alias r-kill='echo "echo; hostname; echo; pkill jupyter-lab| fgrep gvonlasz" | ssh juliet "ssh $JHOST"'
 
 function r-jupyter {
+    r-kill
     r-start-jupyter 2>&1 | tee ${JLOG}
 }
 
-alias j-mount="cd ${JMOUNT}; sshfs juliet:shared juliet -o auto_cache ; cd ${JMOUNT}juliet"
+alias j-mount="cd ${JMOUNT}; sshfs juliet:shared juliet -o auto_cache ; cd ${JMOUNT}/juliet"
 alias j-umount="cd ${JMOUNT}; umount juliet"
 
 alias p-mount="cd ${HOME}; sshfs juliet:ENV3 RPYTHON -o auto_cache"
 alias p-umount="cd ${HOME}; umount RPYTHON"
-
 
 # ##############################################
 # END ROMEO SETUP
