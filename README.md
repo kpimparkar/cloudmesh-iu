@@ -46,12 +46,28 @@ Place the following in your .bashrc, or .zprofile or .pash_profile
 (depends on your computer):
 
 ```
-# chose your own favourite port
+# ##############################################
+# BEGIN ROMEO SETUP
+# ##############################################
+# chose your own favourite port and host 
 JPORT="9100"
 JHOST="r-003"
+JLOG="${HOME}/log-juliet-jupyter.txt"
+JMOUNT="${HOME}/DESKTOP"
+# its in dir juliet, please create it first
 
+# FUNTIONS
 function r-port {
-    ssh -L ${JPORT}:r-003:${JPORT} -i $1 juliet
+    RPORT=`grep "file:" ${JLOG}`
+    ssh -L ${JPORT}:r-003:${JPORT} -i ${RPORT} juliet
+}
+
+function r-open {
+    RHTML=`grep "127." ${JLOG} | tail -1 | sed 's/or //g'`
+    echo
+    echo ${RHTML}
+    echo
+    /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome "${RHTML}"
 }
 
 alias r-allocate='ssh juliet "salloc -p romeo --reservation=lijguo_11"'
@@ -61,9 +77,28 @@ alias romeo='ssh -t juliet "ssh ${JHOST}"'
 alias r='ssh -t juliet "ssh ${JHOST}"'
 alias j='ssh juliet'
 
-alias r-jupyter='echo "pkill jupyter-lab; jupyter-lab --port ${JPORT} --ip 0.0.0.0 --no-browser" | ssh juliet "ssh ${JHOST}"'
+function r-start-jupyter {
+    rm log-jupyter.txt
+    echo "pkill jupyter-lab; jupyter-lab --port ${JPORT} --ip 0.0.0.0 --no-browser" | ssh juliet "ssh ${JHOST}"
+}
+
 alias r-ps='echo "ps -aux| fgrep gvonlasz" | ssh juliet "ssh ${JHOST}"'
 alias r-kill='echo "echo; hostname; echo; pkill jupyter-lab| fgrep gvonlasz" | ssh juliet "ssh $JHOST"'
+
+function r-jupyter {
+    r-start-jupyter 2>&1 | tee ${JLOG}
+}
+
+alias j-mount="cd ${JMOUNT}; sshfs juliet:shared juliet -o auto_cache ; cd ${JMOUNT}juliet"
+alias j-umount="cd ${JMOUNT}; umount juliet"
+
+alias p-mount="cd ${HOME}; sshfs juliet:ENV3 RPYTHON -o auto_cache"
+alias p-umount="cd ${HOME}; umount RPYTHON"
+
+
+# ##############################################
+# END ROMEO SETUP
+# ##############################################
 ```
 
 
