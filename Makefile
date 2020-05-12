@@ -34,7 +34,7 @@ clean:
 	rm -rf docs/build
 	rm -rf build
 	rm -rf dist
-	find . -type d -name __pycache__ -delete
+	find . -name '__pycache__' -type d | xargs rm -fr
 	find . -name '*.pyc' -delete
 	find . -name '*.pye' -delete
 	rm -rf .tox
@@ -49,7 +49,7 @@ clean:
 	rm -rf *.eggs
 	rm -rf docs/build
 	rm -rf build
-	find . -type d -name __pycache__ -delete
+	find . -name '__pycache__' -type d | xargs rm -fr
 	find . -name '*.pyc' -delete
 	rm -rf .tox
 	rm -f *.whl
