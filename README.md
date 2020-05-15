@@ -149,17 +149,21 @@ This provides the following commands to you
 On juliet you must include the following in your bashrc file
 
 ```
-if [ "$HOSTNAME" = j-login1 ]; then
-    echo "------"
-else
-    module load cuda/10.1
-    module load cudnn/10.1-v7.6.5
-    export CUDNN_INCLUDE_DIR=/opt/cudnn-10.1-linux-x64-v7.4.1/cuda/include
-    export CUDNN_LIB_DIR=/opt/cudnn-10.1-linux-x64-v7.4.1/cuda/lib64
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-10.1/extras/CUPTI/lib64:./N/u/sakkas/softwares/TensorRT-6.0.1.5/targets/x86_64-linux-gnu/lib
+if ! [ "$HOSTNAME" = j-login1 ]; then
+    VCUDA=10.1
+    VCUDNN=v7.6.5
 
-    source $HOME/ENV3/bin/activate
+    VMODULE=10.1-${VCUDNN}
+    module load cuda/${VCUDA}
+    module load cudnn/${VMODULE}
+    export CUDNN_INCLUDE_DIR=/opt/cudnn-${VCUDA}-linux-x64-${VCUDNN}/cuda/include/
+    export CUDNN_LIB_DIR=/opt/cudnn-${VCUDA}-linux-x64-${VCUDNN}/cuda/lib64/
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-${VCUDA}/extras/CUPTI/lib64
+
 fi
+
+
+
 ```
 
 ## SSHFS
