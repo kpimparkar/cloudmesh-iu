@@ -26,7 +26,7 @@ You will see the jupyter notebook
 * Make sure you have created an ssh key with `ssh-keygen` in a
   shell. On Windows use gitbash and install it the default way on your
   machine. Linux and macOS have the ssh commands build in
-* Upload the public key in `~/.ssh/id_rsa.pu` into the public key
+* Upload the public key in `~/.ssh/id_rsa.pub` into the public key
   field whne going to your futuresystems account and edit it. The
   account information link is placed on the bottom of the page
 * Now you have to wait a while till your key gets populated to juliet
@@ -54,12 +54,14 @@ JPORT="9100"
 JHOST="r-003"
 JLOG="${HOME}/log-juliet-jupyter.txt"
 JMOUNT="${HOME}/DESKTOP"
+USER="<Your FutureSystems User Name>"
+juliet="${USER}@juliet.futuresystems.org"
 # its in dir juliet, please create it first
 
 # FUNTIONS
 function r-port {
     RPORT=`grep "file:" ${JLOG}`
-    ssh -L ${JPORT}:r-003:${JPORT} -i ${RPORT} juliet
+    ssh -L ${JPORT}:r-003:${JPORT} -i ${RPORT} ${juliet}
 }
 
 function r-open {
@@ -70,30 +72,29 @@ function r-open {
     /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome "${RHTML}"
 }
 
-alias r-allocate='ssh juliet "salloc -p romeo --reservation=lijguo_11"'
-alias r-install='ssh -t juliet "ssh r-003 \"curl -Ls http://cloudmesh.github.io/get/romeo/tf | sh\""'
-alias romeo='ssh -t juliet "ssh ${JHOST}"'
+alias r-allocate='ssh ${juliet} "salloc -p romeo --reservation=lijguo_11"'
+alias r-install='ssh -t ${juliet} "ssh r-003 \"curl -Ls http://cloudmesh.github.io/get/romeo/tf | sh\""'
+alias romeo='ssh -t ${juliet} "ssh ${JHOST}"'
 
-alias r='ssh -t juliet "ssh ${JHOST}"'
-alias j='ssh juliet'
+alias r='ssh -t ${juliet} "ssh ${JHOST}"'
+alias j='ssh ${juliet}'
 
 function r-start-jupyter {
-    rm -f ${JLOG}
-    echo "pkill jupyter-lab; jupyter-lab --port ${JPORT} --ip 0.0.0.0 --no-browser" | ssh juliet "ssh ${JHOST}"
+    echo "pkill -u ${USER} jupyter-lab; ~/ENV3/bin/jupyter-lab --port ${JPORT} --ip 0.0.0.0 --no-browser" | ssh ${juliet} "ssh ${JHOST}"
 }
 
-alias r-ps='echo "ps -aux| fgrep gvonlasz" | ssh juliet "ssh ${JHOST}"'
-alias r-kill='echo "echo; hostname; echo; pkill jupyter-lab| fgrep gvonlasz" | ssh juliet "ssh $JHOST"'
+alias r-ps='echo "ps -aux| fgrep ${USER}" | ssh juliet "ssh ${JHOST}"'
+alias r-kill='echo "echo; hostname; echo; pkill -u ${USER} jupyter-lab" | ssh ${juliet} "ssh ${JHOST}"'
 
 function r-jupyter {
-    r-kill
+    rm -f ${JLOG}
     r-start-jupyter 2>&1 | tee ${JLOG}
 }
 
-alias j-mount="cd ${JMOUNT}; sshfs juliet:shared juliet -o auto_cache ; cd ${JMOUNT}/juliet"
-alias j-umount="cd ${JMOUNT}; umount juliet"
+alias j-mount="cd ${JMOUNT}; sshfs ${juliet}:shared ${juliet} -o auto_cache ; cd ${JMOUNT}/${juliet}"
+alias j-umount="cd ${JMOUNT}; umount ${juliet}"
 
-alias p-mount="cd ${HOME}; sshfs juliet:ENV3 RPYTHON -o auto_cache"
+alias p-mount="cd ${HOME}; sshfs ${juliet}:ENV3 RPYTHON -o auto_cache"
 alias p-umount="cd ${HOME}; umount RPYTHON"
 
 # ##############################################
