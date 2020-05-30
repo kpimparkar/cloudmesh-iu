@@ -54,8 +54,8 @@ JPORT="9100"
 JHOST="r-003"
 JLOG="${HOME}/log-juliet-jupyter.txt"
 JMOUNT="${HOME}/DESKTOP"
-USER="<Your FutureSystems User Name>"
-juliet="${USER}@juliet.futuresystems.org"
+JUSER="<Your FutureSystems User Name on Juliet>"
+juliet="${JUSER}@juliet.futuresystems.org"
 # its in dir juliet, please create it first
 
 # FUNTIONS
@@ -80,11 +80,11 @@ alias r='ssh -t ${juliet} "ssh ${JHOST}"'
 alias j='ssh ${juliet}'
 
 function r-start-jupyter {
-    echo "pkill -u ${USER} jupyter-lab; ~/ENV3/bin/jupyter-lab --port ${JPORT} --ip 0.0.0.0 --no-browser" | ssh ${juliet} "ssh ${JHOST}"
+    echo "pkill -u ${JUSER} jupyter-lab; ~/ENV3/bin/jupyter-lab --port ${JPORT} --ip 0.0.0.0 --no-browser" | ssh ${juliet} "ssh ${JHOST}"
 }
 
-alias r-ps='echo "ps -aux| fgrep ${USER}" | ssh juliet "ssh ${JHOST}"'
-alias r-kill='echo "echo; hostname; echo; pkill -u ${USER} jupyter-lab" | ssh ${juliet} "ssh ${JHOST}"'
+alias r-ps='echo "ps -aux| fgrep ${JUSER}" | ssh juliet "ssh ${JHOST}"'
+alias r-kill='echo "echo; hostname; echo; pkill -u ${JUSER} jupyter-lab" | ssh ${juliet} "ssh ${JHOST}"'
 
 function r-jupyter {
     rm -f ${JLOG}
