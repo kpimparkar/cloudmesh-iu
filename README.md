@@ -50,16 +50,31 @@ Place the following in your .bashrc, or .zprofile or .pash_profile
 # BEGIN ROMEO SETUP
 # ##############################################
 # chose your own favourite port and host 
-JPORT="9100"
-JHOST="r-003"
+JPORT="<Unique port number for your user e.g. 9100>"
+JUSER="<Your FutureSystems User Name on Juliet>"
+juliet="${JUSER}@juliet.futuresystems.org"
 JLOG="${HOME}/log-juliet-jupyter.txt"
 JMOUNT="${HOME}/DESKTOP"
 # its in dir juliet, please create it first
 
-# FUNTIONS
+# FUNCTIONS
+
+function refresh_JHOST {
+        if [ -f ~/allocate.log ]; then
+                JOB_ALLOCATION=`grep 'Granted job allocation' ~/allocate.log | awk -F ' ' '{ print $NF }'`
+                JHOST=`ssh -t ${juliet} "scontrol show job ${JOB_ALLOCATION} | fgrep BatchHost | cut -d '=' -f2"`
+                echo "Refreshed JHOST from file as: " ${JHOST}
+        else
+                JHOST="r-003"
+                echo "Refreshed JHOST with default value as: " ${JHOST}
+        fi
+}
+refresh_JHOST
+
 function r-port {
+    refresh_JHOST
     RPORT=`grep "file:" ${JLOG}`
-    ssh -L ${JPORT}:r-003:${JPORT} -i ${RPORT} juliet
+    ssh -L ${JPORT}:${JHOST}:${JPORT} -i ${RPORT} juliet
 }
 
 function r-open {
@@ -70,20 +85,36 @@ function r-open {
     /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome "${RHTML}"
 }
 
-alias r-allocate='ssh juliet "salloc -p romeo --reservation=lijguo_11"'
-alias r-install='ssh -t juliet "ssh r-003 \"curl -Ls http://cloudmesh.github.io/get/romeo/tf | sh\""'
-alias romeo='ssh -t juliet "ssh ${JHOST}"'
+alias r-allocate='ssh ${juliet} "salloc -p romeo --reservation=lijguo_11" 2>&1 | tee ~/allocate.log'
+#alias r-install='ssh -t juliet "ssh r-003 \"curl -Ls http://cloudmesh.github.io/get/romeo/tf | sh\""'
+function r-install {
+        refresh_JHOST
+        ssh -t ${juliet} "ssh ${JHOST} \"curl -Ls http://cloudmesh.github.io/get/romeo/tf | sh\""
+}
+#alias romeo='ssh -t juliet "ssh ${JHOST}"'
 
-alias r='ssh -t juliet "ssh ${JHOST}"'
-alias j='ssh juliet'
+#alias r='ssh -t juliet "ssh ${JHOST}"'
+function r {
+        refresh_JHOST
+        ssh -t ${juliet} "ssh ${JHOST}"
+}
+alias j='ssh ${juliet}'
 
 function r-start-jupyter {
     rm -f ${JLOG}
-    echo "pkill jupyter-lab; jupyter-lab --port ${JPORT} --ip 0.0.0.0 --no-browser" | ssh juliet "ssh ${JHOST}"
+    refresh_JHOST
+    echo "pkill jupyter-lab; jupyter-lab --port ${JPORT} --ip 0.0.0.0 --no-browser" | ssh ${juliet} "ssh ${JHOST}"
 }
 
-alias r-ps='echo "ps -aux| fgrep gvonlasz" | ssh juliet "ssh ${JHOST}"'
-alias r-kill='echo "echo; hostname; echo; pkill jupyter-lab| fgrep gvonlasz" | ssh juliet "ssh $JHOST"'
+function r-ps {
+        refresh_JHOST
+        echo "ps -aux| fgrep ${JUSER}" | ssh ${juliet} "ssh ${JHOST}"
+}
+
+function r-kill {
+        refresh_JHOST
+        echo "echo; hostname; echo; pkill jupyter-lab| fgrep ${JUSER}" | ssh ${juliet} "ssh $JHOST"
+}
 
 function r-jupyter {
     r-kill
